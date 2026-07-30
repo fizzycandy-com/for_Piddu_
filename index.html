@@ -26,7 +26,6 @@
       min-height: 100vh;
     }
 
-    /* HD Tulip Background */
     #hd-tulip-bg {
       position: fixed;
       top: 0;
@@ -41,7 +40,6 @@
       filter: blur(12px) saturate(0.1) brightness(0.3);
     }
 
-    /* UI Overlay Layer */
     .interface-layer {
       position: fixed;
       top: 0;
@@ -56,7 +54,6 @@
       pointer-events: none;
     }
 
-    /* Percentage Badge */
     #hud {
       position: absolute;
       top: 20px;
@@ -71,7 +68,6 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    /* Tiara Image */
     #princess-tiara {
       width: 130px;
       height: auto;
@@ -82,7 +78,6 @@
       filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.9));
     }
 
-    /* Message Display */
     #main-message {
       text-align: center;
       opacity: 0;
@@ -105,13 +100,11 @@
       text-shadow: 0 2px 10px rgba(0,0,0,0.8);
     }
 
-    /* Active Bloom Reveal */
     .revealed {
       opacity: 1 !important;
       transform: translateY(0) !important;
     }
 
-    /* Start Overlay */
     #start-overlay {
       position: absolute;
       top: 0;
@@ -126,6 +119,9 @@
       z-index: 100;
       backdrop-filter: blur(10px);
       pointer-events: auto;
+      text-align: center;
+      padding: 20px;
+      box-sizing: border-box;
     }
 
     #start-btn {
@@ -147,21 +143,24 @@
       box-shadow: 0 15px 40px rgba(236, 72, 153, 0.7);
     }
 
-    /* Hidden Processing Elements */
+    #hint-text {
+      margin-top: 16px;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.6);
+      max-width: 280px;
+    }
+
     video, canvas { display: none; }
   </style>
 </head>
 <body>
 
-  <!-- HD Background Tulip Image -->
   <div id="hd-tulip-bg"></div>
 
-  <!-- Music File -->
   <audio id="bg-music" loop>
     <source src="golden_brown_slowed.mp3" type="audio/mpeg">
   </audio>
 
-  <!-- UI Interface -->
   <div class="interface-layer">
     <div id="hud">0%</div>
 
@@ -172,9 +171,9 @@
     </div>
   </div>
 
-  <!-- Start Screen -->
   <div id="start-overlay">
     <button id="start-btn">A Royal Bloom For You 🌸 (Click to Begin)</button>
+    <div id="hint-text">Slowly spread your thumb and index finger apart in front of the camera to make it bloom ✨</div>
   </div>
 
   <video id="webcam" playsinline></video>
@@ -184,17 +183,22 @@
     const videoElement = document.getElementById('webcam');
     const canvasElement = document.getElementById('output_canvas');
     const canvasCtx = canvasElement.getContext('2d');
-    
+
     const hud = document.getElementById('hud');
     const startOverlay = document.getElementById('start-overlay');
     const startBtn = document.getElementById('start-btn');
     const music = document.getElementById('bg-music');
-    
+
     const tulipBg = document.getElementById('hd-tulip-bg');
     const tiara = document.getElementById('princess-tiara');
     const message = document.getElementById('main-message');
 
-    let bloomFactor = 0;
+    // Canvas resolution is fixed via the width/height attributes in HTML (640x480),
+    // matching the Camera() config below, so getDistance()'s pixel math stays consistent.
+
+    let bloomFactor = 0;    // smoothed value used for rendering
+    let targetFactor = 0;   // raw value from the latest frame
+    const SMOOTHING = 0.15; // lower = smoother/slower, higher = snappier
 
     function getDistance(p1, p2) {
       const dx = (p1.x - p2.x) * canvasElement.width;
@@ -206,7 +210,6 @@
       const blurVal = (1 - factor) * 12;
       const saturationVal = 0.1 + (factor * 1.7);
       const brightnessVal = 0.3 + (factor * 0.7);
-
       tulipBg.style.filter = `blur(${blurVal}px) saturate(${saturationVal}) brightness(${brightnessVal})`;
     }
 
@@ -217,23 +220,38 @@
 
       if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
         const landmarks = results.multiHandLandmarks[0];
-
-        // Thumb tip (4) & Index tip (8)
         const thumbTip = landmarks[4];
         const indexTip = landmarks[8];
 
-        const dist = getDistance(thumbTip, indexTip);
-        
-        // Map hand gesture distance range
-        const rawFactor = (dist - 15) / (90 - 15);
-        bloomFactor = Math.min(Math.max(rawFactor, 0), 1);
+        // Reference length: wrist (0) to middle-finger MCP (9).
+        // Normalizing against this makes the pinch-spread ratio consistent
+        // regardless of how close/far the hand is from the camera.
+        const wrist = landmarks[0];
+        const middleMcp = landmarks[9];
+        const handScale = getDistance(wrist, middleMcp) || 1;
+
+        const rawDist = getDistance(thumbTip, indexTip);
+        const normalizedDist = rawDist / handScale;
+
+        // Tuned so a natural pinch->open-hand motion sweeps 0-100%.
+        // If it feels too easy/hard to max out, adjust these two numbers.
+        const MIN_RATIO = 0.3;
+        const MAX_RATIO = 1.6;
+
+        const rawFactor = (normalizedDist - MIN_RATIO) / (MAX_RATIO - MIN_RATIO);
+        targetFactor = Math.min(Math.max(rawFactor, 0), 1);
+      } else {
+        // No hand in frame — ease back down instead of freezing the last value
+        targetFactor = 0;
       }
+
+      // Smooth out per-frame jitter from the hand tracker
+      bloomFactor += (targetFactor - bloomFactor) * SMOOTHING;
 
       const percent = Math.round(bloomFactor * 100);
       hud.innerText = `Bloom: ${percent}%`;
       animateFilters(bloomFactor);
 
-      // Trigger Tiara & Message Reveal at high bloom
       if (bloomFactor > 0.85) {
         tiara.classList.add('revealed');
         message.classList.add('revealed');
@@ -267,16 +285,15 @@
     });
 
     startBtn.addEventListener('click', () => {
-      // Play Audio
       music.play().catch(e => console.log("Audio play deferred or file missing"));
 
-      // Start Camera Loop
       camera.start()
         .then(() => {
           startOverlay.style.display = 'none';
         })
         .catch(err => {
-          alert("Camera access denied or failed to load. Please verify camera permissions.");
+          console.error(err);
+          alert("Camera access denied or failed to load. Please check your camera permissions and try again.");
         });
     });
   </script>
