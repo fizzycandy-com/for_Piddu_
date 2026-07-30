@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A Royal Purple Bloom For You 🌸✨</title>
+    <title>A Little Something For You! 🌸✨</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=Inter:wght@300;400;600&display=swap');
 
@@ -28,7 +28,6 @@
             height: 100%;
         }
 
-        /* Video & Canvas Mirroring */
         #webcam {
             position: absolute;
             top: 0;
@@ -59,7 +58,6 @@
             background: radial-gradient(ellipse at center, transparent 30%, rgba(5, 2, 12, 0.85) 100%);
         }
 
-        /* Romantic Overlay Message */
         .interface-layer {
             position: fixed;
             inset: 0;
@@ -99,7 +97,6 @@
             transform: translateY(0) !important;
         }
 
-        /* Start Screen */
         #start-overlay {
             position: absolute;
             inset: 0;
@@ -132,7 +129,6 @@
             box-shadow: 0 15px 45px rgba(168, 85, 247, 0.8);
         }
 
-        /* Instruction Toast */
         .instructions {
             position: absolute;
             bottom: 30px;
@@ -163,8 +159,8 @@
         <canvas id="canvas"></canvas>
         <div class="vignette"></div>
 
-        <!-- Audio -->
-        <audio id="bg-music" loop>
+        <!-- Audio Element -->
+        <audio id="bg-music" preload="auto" loop>
             <source src="golden_brown_slowed.mp3" type="audio/mpeg">
         </audio>
 
@@ -189,7 +185,6 @@
         </div>
     </div>
 
-    <!-- MediaPipe CDNs -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/hands.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js" crossorigin="anonymous"></script>
 
@@ -223,12 +218,12 @@
                 this.vy = -(Math.random() * 0.8 + 0.2);
                 this.life = Math.random() * 300 + 150;
                 this.maxLife = this.life;
-                this.hue = 270 + Math.random() * 40; // Purple hues
+                this.hue = 270 + Math.random() * 40;
                 this.brightness = 75 + Math.random() * 25;
                 this.flickerPhase = Math.random() * Math.PI * 2;
             }
             update(windForce, dt) {
-                this.x += this.vx + windForce * 3.5; // High sensitivity wind interaction
+                this.x += this.vx + windForce * 3.5;
                 this.y += this.vy;
                 this.life -= dt;
                 if (this.life <= 0 || this.y < -20 || this.x < -20 || this.x > this.cw + 20) {
@@ -261,7 +256,6 @@
                 this.startOverlay = document.getElementById('start-overlay');
                 this.startBtn = document.getElementById('start-btn');
                 this.music = document.getElementById('bg-music');
-                
                 this.message = document.getElementById('main-message');
 
                 this.noise = new OrganicNoise();
@@ -286,8 +280,27 @@
 
                 this.initParticles();
                 
+                // Unlocks audio context on user interaction
                 this.startBtn.addEventListener('click', () => {
-                    this.music.play().catch(e => console.log("Audio play deferred"));
+                    if (this.music) {
+                        this.music.volume = 0.85;
+                        const playPromise = this.music.play();
+                        if (playPromise !== undefined) {
+                            playPromise.then(() => {
+                                console.log("Audio playing successfully");
+                            }).catch(err => {
+                                console.warn("Audio play prevented:", err);
+                                // Fallback: try playing on any screen click/tap
+                                const enableAudio = () => {
+                                    this.music.play();
+                                    document.removeEventListener('click', enableAudio);
+                                    document.removeEventListener('touchstart', enableAudio);
+                                };
+                                document.addEventListener('click', enableAudio);
+                                document.addEventListener('touchstart', enableAudio);
+                            });
+                        }
+                    }
                     this.initHandTracking();
                 });
 
@@ -304,7 +317,7 @@
             }
 
             initParticles() {
-                for (let i = 0; i < 100; i++) { // Increased particle density
+                for (let i = 0; i < 100; i++) {
                     this.particles.push(new Particle(this.canvas.width, this.canvas.height));
                 }
             }
@@ -381,10 +394,9 @@
                             hasRight = true;
                         }
 
-                        // Boosted Wind Sensitivity
                         const c = this.palmCenter(hand);
                         const dx = c.x - this.prevHandX;
-                        this.targetWindForce = dx * 32; // Highly sensitive hand sway wind
+                        this.targetWindForce = dx * 32;
                         this.prevHandX = c.x;
                     }
 
@@ -437,7 +449,6 @@
                     ctx.fill();
                     ctx.restore();
 
-                    // Counter-flip text label
                     const midX = (tx + ix) / 2;
                     const midY = (ty + iy) / 2;
 
@@ -476,7 +487,7 @@
 
                 for (let i = 1; i <= segs; i++) {
                     const t = i / segs;
-                    const windBend = windAngle * t * t * 75; // Increased bend reactivity
+                    const windBend = windAngle * t * t * 75;
                     const sway = this.noise.get(this.time * 0.8 + i * 0.25, 0) * 15 * t;
                     pts.push({ x: baseX + windBend + sway, y: baseY - segH * i });
                 }
@@ -485,7 +496,6 @@
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
 
-                // Outer stem glow
                 ctx.lineWidth = 8;
                 ctx.strokeStyle = 'rgba(168, 85, 247, 0.25)';
                 ctx.shadowBlur = 15;
@@ -534,7 +544,6 @@
                 }
             }
 
-            // Real Deep Purple Tulip Head Renderer
             drawFlowerHead(cx, cy, bloom, windAngle, scale) {
                 const adjustedScale = scale * (1.0 + bloom * 0.22);
                 const ctx = this.ctx;
@@ -542,7 +551,6 @@
                 ctx.save();
                 ctx.translate(cx, cy);
 
-                // Intense Ambient Purple Aura
                 const glowR = (80 + bloom * 160) * adjustedScale;
                 if (bloom > 0.02) {
                     const glow = ctx.createRadialGradient(0, -glowR * 0.4, 0, 0, -glowR * 0.4, glowR);
@@ -555,12 +563,10 @@
                     ctx.fill();
                 }
 
-                // Royal Purple Base Colors
-                const hue = 285; // Deep Regal Purple
+                const hue = 285;
                 const sat = 90;
                 const light = 48;
 
-                // Tulip Petal Configurations (Wider & Cup-shaped)
                 const backPetals = [
                     { angle: 0, lengthMul: 1.1, widthMul: 0.5, hueOffset: 0, lightOffset: -6 },
                     { angle: -0.2 - bloom * 0.75, lengthMul: 1.0, widthMul: 0.48, hueOffset: 12, lightOffset: -3 },
@@ -622,7 +628,6 @@
                 ctx.save();
                 ctx.rotate(angle);
 
-                // Deep Purple to Neon Magenta Gradient
                 const grad = ctx.createLinearGradient(0, 0, 0, -length);
                 grad.addColorStop(0, `hsla(${hue + 20}, ${sat}%, ${light - 10}%, 0.95)`);
                 grad.addColorStop(0.35, `hsla(${hue}, ${sat}%, ${light}%, 0.9)`);
@@ -630,10 +635,9 @@
                 grad.addColorStop(1, `hsla(${hue - 25}, ${sat + 15}%, ${light + 22}%, 0.98)`);
 
                 ctx.fillStyle = grad;
-                ctx.shadowBlur = 18 + bloom * 25; // Massive glow
+                ctx.shadowBlur = 18 + bloom * 25;
                 ctx.shadowColor = `hsla(${hue}, 100%, 68%, ${0.4 + bloom * 0.55})`;
 
-                // Refined Curved Tulip Petal Path
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
                 ctx.bezierCurveTo(-width * 1.25, -length * 0.32, -width * 0.95, -length * 0.88, 0, -length);
@@ -716,7 +720,7 @@
                 this.windForce += (this.targetWindForce - this.windForce) * 0.08 * dt;
 
                 const naturalWind = this.noise.get(this.time * 0.7, 1) * 0.15;
-                const totalWind = naturalWind + this.windForce * 0.25; // Wind sensitivity boosted
+                const totalWind = naturalWind + this.windForce * 0.25;
 
                 ctx.clearRect(0, 0, cw, ch);
 
@@ -730,11 +734,10 @@
                 }
 
                 if (this.growth > 0.005) {
-                    // Multi-Stem Bouquet Configuration (3 Stems simultaneously)
                     const stemsConfig = [
-                        { baseX: cw * 0.5, baseY: ch * 0.98, heightFactor: 0.52, scaleFactor: 1.25 }, // Center stem
-                        { baseX: cw * 0.32, baseY: ch * 0.98, heightFactor: 0.44, scaleFactor: 1.05 }, // Left stem
-                        { baseX: cw * 0.68, baseY: ch * 0.98, heightFactor: 0.46, scaleFactor: 1.1 }   // Right stem
+                        { baseX: cw * 0.5, baseY: ch * 0.98, heightFactor: 0.52, scaleFactor: 1.25 },
+                        { baseX: cw * 0.32, baseY: ch * 0.98, heightFactor: 0.44, scaleFactor: 1.05 },
+                        { baseX: cw * 0.68, baseY: ch * 0.98, heightFactor: 0.46, scaleFactor: 1.1 }
                     ];
 
                     for (const stemConf of stemsConfig) {
@@ -745,7 +748,6 @@
                         const tip = stemData.tip;
                         const pts = stemData.pts;
 
-                        // Branch flowers on each stem
                         const branchConfigs = [
                             { heightRatio: 0.4, direction: -1, lengthFactor: 0.12, scaleFactor: 0.4 },
                             { heightRatio: 0.6, direction: 1, lengthFactor: 0.11, scaleFactor: 0.42 }
@@ -765,12 +767,10 @@
                             }
                         }
 
-                        // Main head on each stem
                         this.drawFlowerHead(tip.x, tip.y, this.bloom, totalWind, flowerScale);
                     }
                 }
 
-                // Trigger Romantic Message Reveal on Bloom
                 if (this.bloom > 0.60) {
                     this.message.classList.add('revealed');
                 } else {
