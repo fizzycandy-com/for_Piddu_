@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A Royal Bloom For You 🌸💍</title>
+    <title>A Royal Purple Bloom For You 🌸✨</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=Inter:wght@300;400;600&display=swap');
 
@@ -17,7 +17,7 @@
             width: 100vw;
             height: 100vh;
             overflow: hidden;
-            background: #090e18;
+            background: #05030a;
             font-family: 'Inter', sans-serif;
             color: white;
         }
@@ -28,7 +28,7 @@
             height: 100%;
         }
 
-        /* Mirror Video & Canvas together */
+        /* Video & Canvas Mirroring */
         #webcam {
             position: absolute;
             top: 0;
@@ -56,10 +56,10 @@
             inset: 0;
             z-index: 3;
             pointer-events: none;
-            background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.75) 100%);
+            background: radial-gradient(ellipse at center, transparent 30%, rgba(5, 2, 12, 0.85) 100%);
         }
 
-        /* Romantic Overlay Message & Tiara */
+        /* Romantic Overlay Message */
         .interface-layer {
             position: fixed;
             inset: 0;
@@ -72,36 +72,26 @@
             font-family: 'Playfair Display', serif;
         }
 
-        #princess-tiara {
-            width: 130px;
-            height: auto;
-            margin-bottom: 15px;
-            opacity: 0;
-            transition: opacity 1.5s ease, transform 1.5s ease;
-            transform: translateY(-10px);
-            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.9));
-        }
-
         #main-message {
             text-align: center;
             opacity: 0;
             transition: opacity 1.5s ease, transform 1.5s ease;
-            transform: translateY(10px);
+            transform: translateY(15px);
             padding: 0 20px;
         }
 
         #main-message h1 {
-            font-size: 2.3rem;
-            margin: 0 0 10px 0;
-            color: #ffd700;
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+            font-size: 2.6rem;
+            margin: 0 0 12px 0;
+            color: #e879f9;
+            text-shadow: 0 0 20px rgba(217, 70, 239, 0.8), 0 0 40px rgba(168, 85, 247, 0.5);
         }
 
         #main-message p {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             margin: 0;
-            color: #fce7f3;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+            color: #f3e8ff;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
         }
 
         .revealed {
@@ -109,11 +99,11 @@
             transform: translateY(0) !important;
         }
 
-        /* Start Screen Overlay */
+        /* Start Screen */
         #start-overlay {
             position: absolute;
             inset: 0;
-            background: rgba(9, 14, 24, 0.93);
+            background: rgba(5, 3, 10, 0.94);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -124,44 +114,44 @@
         }
 
         #start-btn {
-            background: linear-gradient(135deg, #ec4899, #db2777);
+            background: linear-gradient(135deg, #a855f7, #c084fc);
             color: white;
             border: none;
-            padding: 18px 36px;
-            font-size: 1.15rem;
+            padding: 20px 40px;
+            font-size: 1.2rem;
             font-family: 'Playfair Display', serif;
             font-weight: 600;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 10px 30px rgba(236, 72, 153, 0.5);
+            box-shadow: 0 10px 35px rgba(168, 85, 247, 0.6);
             transition: all 0.3s ease;
         }
 
         #start-btn:hover {
-            transform: translateY(-2px) scale(1.03);
-            box-shadow: 0 15px 40px rgba(236, 72, 153, 0.7);
+            transform: translateY(-2px) scale(1.04);
+            box-shadow: 0 15px 45px rgba(168, 85, 247, 0.8);
         }
 
-        /* Gesture Instruction Toast */
+        /* Instruction Toast */
         .instructions {
             position: absolute;
             bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 20;
-            background: rgba(0, 0, 0, 0.65);
+            background: rgba(10, 5, 20, 0.75);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 150, 200, 0.25);
+            border: 1px solid rgba(192, 132, 252, 0.3);
             border-radius: 20px;
-            padding: 12px 24px;
-            color: rgba(255, 220, 240, 0.95);
+            padding: 12px 26px;
+            color: rgba(243, 232, 255, 0.95);
             font-size: 0.9rem;
             letter-spacing: 0.5px;
             text-align: center;
             pointer-events: none;
         }
         .instructions span {
-            color: #ff80ab;
+            color: #c084fc;
             font-weight: 600;
         }
     </style>
@@ -173,17 +163,16 @@
         <canvas id="canvas"></canvas>
         <div class="vignette"></div>
 
-        <!-- Custom Audio -->
+        <!-- Audio -->
         <audio id="bg-music" loop>
             <source src="golden_brown_slowed.mp3" type="audio/mpeg">
         </audio>
 
         <!-- UI Overlay Layer -->
         <div class="interface-layer">
-            <img id="princess-tiara" src="princess_tiara.png" alt="Tiara" />
             <div id="main-message">
-                <h1>Thank you for being the best girlfriend in the world 🌸</h1>
-                <p>Happy Girlfriend's Day, my princess! 💍✨</p>
+                <h1>Thank you for being the best girlfriend in the world 💜✨</h1>
+                <p>Happy Girlfriend's Day, my princess! 🌸💍</p>
             </div>
         </div>
 
@@ -191,12 +180,12 @@
         <div class="instructions">
             <span>Left hand pinch</span> controls Bloom &nbsp;·&nbsp;
             <span>Right hand pinch</span> controls Growth &nbsp;·&nbsp;
-            <span>Sway hands</span> for wind
+            <span>Sway hands fast</span> for strong wind
         </div>
 
         <!-- Start Screen -->
         <div id="start-overlay">
-            <button id="start-btn">A Royal Bloom For You 🌸 (Click to Begin)</button>
+            <button id="start-btn">A Royal Purple Bloom For You 💜 (Click to Begin)</button>
         </div>
     </div>
 
@@ -229,17 +218,17 @@
             reset(initial = false) {
                 this.x = Math.random() * this.cw;
                 this.y = initial ? Math.random() * this.ch : this.ch + Math.random() * 40;
-                this.radius = Math.random() * 2.5 + 0.5;
-                this.vx = (Math.random() - 0.5) * 0.3;
-                this.vy = -(Math.random() * 0.6 + 0.15);
+                this.radius = Math.random() * 3 + 0.8;
+                this.vx = (Math.random() - 0.5) * 0.4;
+                this.vy = -(Math.random() * 0.8 + 0.2);
                 this.life = Math.random() * 300 + 150;
                 this.maxLife = this.life;
-                this.hue = 330 + Math.random() * 40;
-                this.brightness = 70 + Math.random() * 20;
+                this.hue = 270 + Math.random() * 40; // Purple hues
+                this.brightness = 75 + Math.random() * 25;
                 this.flickerPhase = Math.random() * Math.PI * 2;
             }
             update(windForce, dt) {
-                this.x += this.vx + windForce * 1.8;
+                this.x += this.vx + windForce * 3.5; // High sensitivity wind interaction
                 this.y += this.vy;
                 this.life -= dt;
                 if (this.life <= 0 || this.y < -20 || this.x < -20 || this.x > this.cw + 20) {
@@ -248,15 +237,15 @@
             }
             draw(ctx) {
                 const t = this.life / this.maxLife;
-                const flicker = 0.5 + 0.5 * Math.sin(this.life * 0.08 + this.flickerPhase);
-                const alpha = t * 0.75 * flicker;
+                const flicker = 0.5 + 0.5 * Math.sin(this.life * 0.1 + this.flickerPhase);
+                const alpha = t * 0.85 * flicker;
                 if (alpha < 0.02) return;
 
                 ctx.save();
                 ctx.globalAlpha = alpha;
-                ctx.shadowBlur = 12;
-                ctx.shadowColor = `hsla(${this.hue}, 100%, ${this.brightness}%, 0.8)`;
-                ctx.fillStyle = `hsla(${this.hue}, 90%, ${this.brightness}%, 1)`;
+                ctx.shadowBlur = 18;
+                ctx.shadowColor = `hsla(${this.hue}, 100%, ${this.brightness}%, 1)`;
+                ctx.fillStyle = `hsla(${this.hue}, 95%, ${this.brightness}%, 1)`;
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                 ctx.fill();
@@ -273,7 +262,6 @@
                 this.startBtn = document.getElementById('start-btn');
                 this.music = document.getElementById('bg-music');
                 
-                this.tiara = document.getElementById('princess-tiara');
                 this.message = document.getElementById('main-message');
 
                 this.noise = new OrganicNoise();
@@ -316,7 +304,7 @@
             }
 
             initParticles() {
-                for (let i = 0; i < 60; i++) {
+                for (let i = 0; i < 100; i++) { // Increased particle density
                     this.particles.push(new Particle(this.canvas.width, this.canvas.height));
                 }
             }
@@ -393,9 +381,10 @@
                             hasRight = true;
                         }
 
+                        // Boosted Wind Sensitivity
                         const c = this.palmCenter(hand);
                         const dx = c.x - this.prevHandX;
-                        this.targetWindForce = dx * 12;
+                        this.targetWindForce = dx * 32; // Highly sensitive hand sway wind
                         this.prevHandX = c.x;
                     }
 
@@ -404,7 +393,7 @@
                 } else {
                     this.targetBloom *= 0.94;
                     this.targetGrowth *= 0.94;
-                    this.targetWindForce *= 0.9;
+                    this.targetWindForce *= 0.85;
                 }
             }
 
@@ -423,14 +412,14 @@
 
                     const isLeft = handedness && handedness.label === 'Left';
                     const labelText = isLeft ? '🌸 Left: Bloom' : '🌱 Right: Grow';
-                    const glowColor = isLeft ? 'rgba(255, 80, 130, 0.85)' : 'rgba(56, 193, 114, 0.85)';
-                    const strokeStyle = isLeft ? '#ff5082' : '#38c172';
+                    const glowColor = isLeft ? 'rgba(217, 70, 239, 0.9)' : 'rgba(168, 85, 247, 0.9)';
+                    const strokeStyle = isLeft ? '#d946ef' : '#a855f7';
 
                     ctx.save();
                     ctx.setLineDash([4, 4]);
                     ctx.lineWidth = 2;
                     ctx.strokeStyle = strokeStyle;
-                    ctx.shadowBlur = 8;
+                    ctx.shadowBlur = 12;
                     ctx.shadowColor = glowColor;
                     ctx.beginPath();
                     ctx.moveTo(tx, ty);
@@ -439,7 +428,7 @@
                     ctx.restore();
 
                     ctx.save();
-                    ctx.shadowBlur = 10;
+                    ctx.shadowBlur = 12;
                     ctx.shadowColor = glowColor;
                     ctx.fillStyle = strokeStyle;
                     ctx.beginPath();
@@ -463,7 +452,7 @@
                     const drawX = cw - midX;
                     const drawY = midY - 20;
 
-                    ctx.fillStyle = 'rgba(10, 5, 20, 0.8)';
+                    ctx.fillStyle = 'rgba(10, 5, 20, 0.85)';
                     ctx.strokeStyle = strokeStyle;
                     ctx.lineWidth = 1;
                     ctx.beginPath();
@@ -487,8 +476,8 @@
 
                 for (let i = 1; i <= segs; i++) {
                     const t = i / segs;
-                    const windBend = windAngle * t * t * 40;
-                    const sway = this.noise.get(this.time * 0.6 + i * 0.25, 0) * 10 * t;
+                    const windBend = windAngle * t * t * 75; // Increased bend reactivity
+                    const sway = this.noise.get(this.time * 0.8 + i * 0.25, 0) * 15 * t;
                     pts.push({ x: baseX + windBend + sway, y: baseY - segH * i });
                 }
 
@@ -496,15 +485,18 @@
                 ctx.lineCap = 'round';
                 ctx.lineJoin = 'round';
 
-                ctx.lineWidth = 6;
-                ctx.strokeStyle = 'rgba(40, 120, 35, 0.25)';
+                // Outer stem glow
+                ctx.lineWidth = 8;
+                ctx.strokeStyle = 'rgba(168, 85, 247, 0.25)';
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = 'rgba(192, 132, 252, 0.5)';
                 ctx.beginPath();
                 ctx.moveTo(pts[0].x, pts[0].y);
                 for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
                 ctx.stroke();
 
-                ctx.lineWidth = 3.5;
-                ctx.strokeStyle = '#3a8a30';
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#2e7d32';
                 ctx.beginPath();
                 ctx.moveTo(pts[0].x, pts[0].y);
                 for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
@@ -522,7 +514,7 @@
                     const idx = Math.floor(positions[li] * (stemPts.length - 1));
                     const pt = stemPts[idx];
                     const side = li % 2 === 0 ? 1 : -1;
-                    const len = 22 + this.growth * 18;
+                    const len = 25 + this.growth * 20;
                     const angle = side * (0.45 + this.noise.get(this.time * 0.6 + li * 3, 2) * 0.2);
 
                     ctx.save();
@@ -530,73 +522,81 @@
                     ctx.rotate(angle);
 
                     const grad = ctx.createLinearGradient(0, 0, len, 0);
-                    grad.addColorStop(0, 'rgba(55, 140, 45, 0.8)');
-                    grad.addColorStop(1, 'rgba(75, 170, 60, 0.4)');
+                    grad.addColorStop(0, 'rgba(46, 125, 50, 0.9)');
+                    grad.addColorStop(1, 'rgba(129, 199, 132, 0.4)');
                     ctx.fillStyle = grad;
                     ctx.beginPath();
                     ctx.moveTo(0, 0);
-                    ctx.quadraticCurveTo(len * 0.5, -10, len, -1);
-                    ctx.quadraticCurveTo(len * 0.5, 10, 0, 0);
+                    ctx.quadraticCurveTo(len * 0.5, -12, len, -1);
+                    ctx.quadraticCurveTo(len * 0.5, 12, 0, 0);
                     ctx.fill();
                     ctx.restore();
                 }
             }
 
+            // Real Deep Purple Tulip Head Renderer
             drawFlowerHead(cx, cy, bloom, windAngle, scale) {
-                const adjustedScale = scale * (1.0 + bloom * 0.18);
+                const adjustedScale = scale * (1.0 + bloom * 0.22);
                 const ctx = this.ctx;
 
                 ctx.save();
                 ctx.translate(cx, cy);
 
-                const glowR = (60 + bloom * 120) * adjustedScale;
+                // Intense Ambient Purple Aura
+                const glowR = (80 + bloom * 160) * adjustedScale;
                 if (bloom > 0.02) {
                     const glow = ctx.createRadialGradient(0, -glowR * 0.4, 0, 0, -glowR * 0.4, glowR);
-                    glow.addColorStop(0, `rgba(255, 80, 130, ${0.4 * bloom})`);
-                    glow.addColorStop(0.5, `rgba(255, 50, 100, ${0.2 * bloom})`);
-                    glow.addColorStop(1, 'rgba(255, 30, 70, 0)');
+                    glow.addColorStop(0, `rgba(192, 132, 252, ${0.65 * bloom})`);
+                    glow.addColorStop(0.4, `rgba(147, 51, 234, ${0.35 * bloom})`);
+                    glow.addColorStop(1, 'rgba(88, 28, 135, 0)');
                     ctx.fillStyle = glow;
                     ctx.beginPath();
                     ctx.arc(0, -glowR * 0.4, glowR, 0, Math.PI * 2);
                     ctx.fill();
                 }
 
-                const hue = 345, sat = 85, light = 55;
+                // Royal Purple Base Colors
+                const hue = 285; // Deep Regal Purple
+                const sat = 90;
+                const light = 48;
 
+                // Tulip Petal Configurations (Wider & Cup-shaped)
                 const backPetals = [
-                    { angle: 0, lengthMul: 1.0, widthMul: 0.4, hueOffset: 0, lightOffset: -4 },
-                    { angle: -0.15 - bloom * 0.7, lengthMul: 0.95, widthMul: 0.38, hueOffset: 10, lightOffset: -2 },
-                    { angle: 0.15 + bloom * 0.7, lengthMul: 0.95, widthMul: 0.38, hueOffset: 10, lightOffset: -2 }
+                    { angle: 0, lengthMul: 1.1, widthMul: 0.5, hueOffset: 0, lightOffset: -6 },
+                    { angle: -0.2 - bloom * 0.75, lengthMul: 1.0, widthMul: 0.48, hueOffset: 12, lightOffset: -3 },
+                    { angle: 0.2 + bloom * 0.75, lengthMul: 1.0, widthMul: 0.48, hueOffset: 12, lightOffset: -3 }
                 ];
 
                 const frontPetals = [
-                    { angle: -0.05 - bloom * 0.55, lengthMul: 0.9, widthMul: 0.35, hueOffset: 5, lightOffset: 2 },
-                    { angle: 0.05 + bloom * 0.55, lengthMul: 0.9, widthMul: 0.35, hueOffset: 5, lightOffset: 2 },
-                    { angle: 0, lengthMul: 0.85, widthMul: 0.32, hueOffset: -5, lightOffset: 5 }
+                    { angle: -0.08 - bloom * 0.6, lengthMul: 0.95, widthMul: 0.45, hueOffset: 6, lightOffset: 4 },
+                    { angle: 0.08 + bloom * 0.6, lengthMul: 0.95, widthMul: 0.45, hueOffset: 6, lightOffset: 4 },
+                    { angle: 0, lengthMul: 0.88, widthMul: 0.42, hueOffset: -8, lightOffset: 8 }
                 ];
 
-                const maxPetalLen = 85 * adjustedScale;
+                const maxPetalLen = 95 * adjustedScale;
 
                 for (const p of backPetals) {
-                    const flutter = this.noise.get(this.time * 1.2 + p.angle * 10, 3) * 0.04 * (1 + bloom);
-                    this.drawTulipPetal(ctx, p.angle + flutter + windAngle * 0.1, maxPetalLen * p.lengthMul, maxPetalLen * p.widthMul * (0.6 + bloom * 0.8), hue + p.hueOffset, sat, light + p.lightOffset, bloom);
+                    const flutter = this.noise.get(this.time * 1.2 + p.angle * 10, 3) * 0.05 * (1 + bloom);
+                    this.drawTulipPetal(ctx, p.angle + flutter + windAngle * 0.12, maxPetalLen * p.lengthMul, maxPetalLen * p.widthMul * (0.65 + bloom * 0.85), hue + p.hueOffset, sat, light + p.lightOffset, bloom);
                 }
 
                 if (bloom > 0.15) {
                     ctx.save();
-                    ctx.fillStyle = `rgba(180, 220, 100, ${bloom})`;
+                    ctx.fillStyle = `rgba(233, 213, 255, ${bloom})`;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#e9d5ff';
                     ctx.beginPath();
-                    ctx.arc(0, -maxPetalLen * 0.2, 5 * adjustedScale, 0, Math.PI * 2);
+                    ctx.arc(0, -maxPetalLen * 0.22, 6 * adjustedScale, 0, Math.PI * 2);
                     ctx.fill();
 
-                    for (let i = 0; i < 4; i++) {
-                        const a = (i / 4) * Math.PI * 2 + this.time * 0.5;
-                        const r = 8 * adjustedScale * bloom;
+                    for (let i = 0; i < 5; i++) {
+                        const a = (i / 5) * Math.PI * 2 + this.time * 0.5;
+                        const r = 9 * adjustedScale * bloom;
                         const sx = Math.cos(a) * r;
-                        const sy = -maxPetalLen * 0.2 + Math.sin(a) * r;
+                        const sy = -maxPetalLen * 0.22 + Math.sin(a) * r;
 
-                        ctx.strokeStyle = `rgba(220, 200, 80, ${bloom * 0.7})`;
-                        ctx.lineWidth = 1.5 * adjustedScale;
+                        ctx.strokeStyle = `rgba(216, 180, 254, ${bloom * 0.8})`;
+                        ctx.lineWidth = 1.8 * adjustedScale;
                         ctx.beginPath();
                         ctx.moveTo(0, -maxPetalLen * 0.1);
                         ctx.lineTo(sx, sy);
@@ -604,15 +604,15 @@
 
                         ctx.fillStyle = `rgba(255, 235, 120, ${bloom})`;
                         ctx.beginPath();
-                        ctx.arc(sx, sy, 2.5 * adjustedScale, 0, Math.PI * 2);
+                        ctx.arc(sx, sy, 3 * adjustedScale, 0, Math.PI * 2);
                         ctx.fill();
                     }
                     ctx.restore();
                 }
 
                 for (const p of frontPetals) {
-                    const flutter = this.noise.get(this.time * 1.4 + p.angle * 10, 4) * 0.03 * (1 + bloom);
-                    this.drawTulipPetal(ctx, p.angle + flutter + windAngle * 0.05, maxPetalLen * p.lengthMul, maxPetalLen * p.widthMul * (0.65 + bloom * 0.75), hue + p.hueOffset, sat, light + p.lightOffset, bloom);
+                    const flutter = this.noise.get(this.time * 1.4 + p.angle * 10, 4) * 0.04 * (1 + bloom);
+                    this.drawTulipPetal(ctx, p.angle + flutter + windAngle * 0.06, maxPetalLen * p.lengthMul, maxPetalLen * p.widthMul * (0.7 + bloom * 0.8), hue + p.hueOffset, sat, light + p.lightOffset, bloom);
                 }
 
                 ctx.restore();
@@ -622,20 +622,22 @@
                 ctx.save();
                 ctx.rotate(angle);
 
+                // Deep Purple to Neon Magenta Gradient
                 const grad = ctx.createLinearGradient(0, 0, 0, -length);
-                grad.addColorStop(0, `hsla(${hue + 25}, ${sat}%, ${light - 8}%, 0.9)`);
-                grad.addColorStop(0.4, `hsla(${hue}, ${sat}%, ${light}%, 0.85)`);
-                grad.addColorStop(0.85, `hsla(${hue - 10}, ${sat + 10}%, ${light + 10}%, 0.85)`);
-                grad.addColorStop(1, `hsla(${hue - 20}, ${sat + 15}%, ${light + 18}%, 0.95)`);
+                grad.addColorStop(0, `hsla(${hue + 20}, ${sat}%, ${light - 10}%, 0.95)`);
+                grad.addColorStop(0.35, `hsla(${hue}, ${sat}%, ${light}%, 0.9)`);
+                grad.addColorStop(0.8, `hsla(${hue - 15}, ${sat + 10}%, ${light + 14}%, 0.9)`);
+                grad.addColorStop(1, `hsla(${hue - 25}, ${sat + 15}%, ${light + 22}%, 0.98)`);
 
                 ctx.fillStyle = grad;
-                ctx.shadowBlur = 12 + bloom * 18;
-                ctx.shadowColor = `hsla(${hue}, 100%, 65%, ${0.25 + bloom * 0.4})`;
+                ctx.shadowBlur = 18 + bloom * 25; // Massive glow
+                ctx.shadowColor = `hsla(${hue}, 100%, 68%, ${0.4 + bloom * 0.55})`;
 
+                // Refined Curved Tulip Petal Path
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
-                ctx.bezierCurveTo(-width * 1.1, -length * 0.3, -width * 0.9, -length * 0.85, 0, -length);
-                ctx.bezierCurveTo(width * 0.9, -length * 0.85, width * 1.1, -length * 0.3, 0, 0);
+                ctx.bezierCurveTo(-width * 1.25, -length * 0.32, -width * 0.95, -length * 0.88, 0, -length);
+                ctx.bezierCurveTo(width * 0.95, -length * 0.88, width * 1.25, -length * 0.32, 0, 0);
                 ctx.fill();
                 ctx.restore();
             }
@@ -648,8 +650,8 @@
 
                 for (let i = 1; i <= segs; i++) {
                     const t = i / segs;
-                    const windBend = windAngle * t * t * 15;
-                    const sway = this.noise.get(this.time * 0.8 + i * 0.3, 5) * 4 * t;
+                    const windBend = windAngle * t * t * 25;
+                    const sway = this.noise.get(this.time * 0.8 + i * 0.3, 5) * 5 * t;
                     const angle = baseAngle + windBend * 0.02 + sway * 0.01;
                     pts.push({
                         x: pts[pts.length - 1].x + Math.cos(angle) * segL + windBend * 0.3,
@@ -658,8 +660,10 @@
                 }
 
                 ctx.save();
-                ctx.lineWidth = 2.5 * scale;
-                ctx.strokeStyle = '#3a8a30';
+                ctx.lineWidth = 3 * scale;
+                ctx.strokeStyle = '#2e7d32';
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = 'rgba(168, 85, 247, 0.4)';
                 ctx.beginPath();
                 ctx.moveTo(pts[0].x, pts[0].y);
                 for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
@@ -680,18 +684,18 @@
                 ctx.font = '600 14px Inter, sans-serif';
                 const px = 20, py = 25;
 
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                ctx.fillStyle = 'rgba(10, 5, 20, 0.5)';
                 ctx.beginPath();
                 ctx.roundRect(px - 10, py - 14, 138, 78, 10);
                 ctx.fill();
 
-                ctx.fillStyle = 'rgba(255, 170, 200, 0.95)';
+                ctx.fillStyle = 'rgba(232, 121, 249, 0.95)';
                 ctx.fillText(`Bloom: ${this.bloom.toFixed(2)}`, px, py + 6);
 
-                ctx.fillStyle = 'rgba(140, 255, 140, 0.95)';
+                ctx.fillStyle = 'rgba(192, 132, 252, 0.95)';
                 ctx.fillText(`Grow: ${this.growth.toFixed(2)}`, px, py + 28);
 
-                ctx.fillStyle = 'rgba(140, 200, 255, 0.95)';
+                ctx.fillStyle = 'rgba(147, 197, 253, 0.95)';
                 ctx.fillText(`Wind: ${this.windForce.toFixed(2)}`, px, py + 50);
 
                 ctx.restore();
@@ -706,13 +710,13 @@
                 const cw = this.canvas.width;
                 const ch = this.canvas.height;
 
-                const lerpSpeed = 0.07 * dt;
+                const lerpSpeed = 0.08 * dt;
                 this.bloom += (this.targetBloom - this.bloom) * lerpSpeed;
                 this.growth += (this.targetGrowth - this.growth) * 0.05 * dt;
-                this.windForce += (this.targetWindForce - this.windForce) * 0.06 * dt;
+                this.windForce += (this.targetWindForce - this.windForce) * 0.08 * dt;
 
-                const naturalWind = this.noise.get(this.time * 0.7, 1) * 0.12;
-                const totalWind = naturalWind + this.windForce * 0.18;
+                const naturalWind = this.noise.get(this.time * 0.7, 1) * 0.15;
+                const totalWind = naturalWind + this.windForce * 0.25; // Wind sensitivity boosted
 
                 ctx.clearRect(0, 0, cw, ch);
 
@@ -726,43 +730,50 @@
                 }
 
                 if (this.growth > 0.005) {
-                    const stemBaseX = cw * 0.5;
-                    const stemBaseY = ch * 0.98;
-                    const stemH = ch * 0.52 * this.growth;
-                    const flowerScale = 1.3 * this.growth;
-
-                    const stemData = this.drawStem(stemBaseX, stemBaseY, stemH, totalWind);
-                    const tip = stemData.tip;
-                    const pts = stemData.pts;
-
-                    const branchConfigs = [
-                        { heightRatio: 0.35, direction: -1, lengthFactor: 0.15, scaleFactor: 0.42 },
-                        { heightRatio: 0.55, direction: 1, lengthFactor: 0.13, scaleFactor: 0.45 }
+                    // Multi-Stem Bouquet Configuration (3 Stems simultaneously)
+                    const stemsConfig = [
+                        { baseX: cw * 0.5, baseY: ch * 0.98, heightFactor: 0.52, scaleFactor: 1.25 }, // Center stem
+                        { baseX: cw * 0.32, baseY: ch * 0.98, heightFactor: 0.44, scaleFactor: 1.05 }, // Left stem
+                        { baseX: cw * 0.68, baseY: ch * 0.98, heightFactor: 0.46, scaleFactor: 1.1 }   // Right stem
                     ];
 
-                    for (const config of branchConfigs) {
-                        const idx = Math.floor(pts.length * config.heightRatio);
-                        if (idx > 0 && idx < pts.length) {
-                            const pt = pts[idx];
-                            const prevPt = pts[idx - 1] || pt;
-                            const tangent = Math.atan2(pt.y - prevPt.y, pt.x - prevPt.x);
-                            const branchAngle = tangent + (config.direction * 0.75);
-                            const branchLength = ch * config.lengthFactor * this.growth;
-                            const branchTip = this.drawBranch(pt.x, pt.y, branchAngle, branchLength, totalWind, this.growth);
-                            
-                            this.drawFlowerHead(branchTip.x, branchTip.y, this.bloom, totalWind, flowerScale * config.scaleFactor);
-                        }
-                    }
+                    for (const stemConf of stemsConfig) {
+                        const stemH = ch * stemConf.heightFactor * this.growth;
+                        const flowerScale = stemConf.scaleFactor * this.growth;
 
-                    this.drawFlowerHead(tip.x, tip.y, this.bloom, totalWind, flowerScale);
+                        const stemData = this.drawStem(stemConf.baseX, stemConf.baseY, stemH, totalWind);
+                        const tip = stemData.tip;
+                        const pts = stemData.pts;
+
+                        // Branch flowers on each stem
+                        const branchConfigs = [
+                            { heightRatio: 0.4, direction: -1, lengthFactor: 0.12, scaleFactor: 0.4 },
+                            { heightRatio: 0.6, direction: 1, lengthFactor: 0.11, scaleFactor: 0.42 }
+                        ];
+
+                        for (const config of branchConfigs) {
+                            const idx = Math.floor(pts.length * config.heightRatio);
+                            if (idx > 0 && idx < pts.length) {
+                                const pt = pts[idx];
+                                const prevPt = pts[idx - 1] || pt;
+                                const tangent = Math.atan2(pt.y - prevPt.y, pt.x - prevPt.x);
+                                const branchAngle = tangent + (config.direction * 0.75);
+                                const branchLength = ch * config.lengthFactor * this.growth;
+                                const branchTip = this.drawBranch(pt.x, pt.y, branchAngle, branchLength, totalWind, this.growth);
+                                
+                                this.drawFlowerHead(branchTip.x, branchTip.y, this.bloom, totalWind, flowerScale * config.scaleFactor);
+                            }
+                        }
+
+                        // Main head on each stem
+                        this.drawFlowerHead(tip.x, tip.y, this.bloom, totalWind, flowerScale);
+                    }
                 }
 
-                // Trigger Tiara & Romantic Message Reveal on Bloom
-                if (this.bloom > 0.65) {
-                    this.tiara.classList.add('revealed');
+                // Trigger Romantic Message Reveal on Bloom
+                if (this.bloom > 0.60) {
                     this.message.classList.add('revealed');
                 } else {
-                    this.tiara.classList.remove('revealed');
                     this.message.classList.remove('revealed');
                 }
 
