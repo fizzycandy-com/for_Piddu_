@@ -1,111 +1,779 @@
-<script>
-    const videoElement = document.getElementById('webcam');
-    const canvasElement = document.getElementById('output_canvas');
-    const canvasCtx = canvasElement.getContext('2d');
-    
-    const hud = document.getElementById('hud');
-    const startOverlay = document.getElementById('start-overlay');
-    const startBtn = document.getElementById('start-btn');
-    const music = document.getElementById('bg-music');
-    
-    const tulipBg = document.getElementById('hd-tulip-bg');
-    const tiara = document.getElementById('princess-tiara');
-    const message = document.getElementById('main-message');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Royal Bloom For You 🌸💍</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=Inter:wght@300;400;600&display=swap');
 
-    let bloomFactor = 0;
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    // Standard Normalized Distance
-    function getDistance(p1, p2) {
-      const dx = p1.x - p2.x;
-      const dy = p1.y - p2.y;
-      return Math.sqrt(dx * dx + dy * dy);
-    }
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background: #090e18;
+            font-family: 'Inter', sans-serif;
+            color: white;
+        }
 
-    function animateFilters(factor) {
-      const blurVal = (1 - factor) * 12;
-      const saturationVal = 0.1 + (factor * 1.7);
-      const brightnessVal = 0.3 + (factor * 0.7);
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
 
-      tulipBg.style.filter = `blur(${blurVal}px) saturate(${saturationVal}) brightness(${brightnessVal})`;
-    }
+        /* Mirror Video & Canvas together */
+        #webcam {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+            z-index: 1;
+        }
 
-    function onResults(results) {
-      canvasCtx.save();
-      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-      canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: scaleX(-1);
+            z-index: 2;
+            pointer-events: none;
+        }
 
-      if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-        const landmarks = results.multiHandLandmarks[0];
+        .vignette {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.75) 100%);
+        }
 
-        // Key Landmarks
-        const wrist = landmarks[0];
-        const middleMCP = landmarks[9]; // Middle finger knuckle
-        const thumbTip = landmarks[4];
-        const indexTip = landmarks[8];
+        /* Romantic Overlay Message & Tiara */
+        .interface-layer {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            pointer-events: none;
+            font-family: 'Playfair Display', serif;
+        }
 
-        // 1. Calculate Palm Scale (Wrist to Middle Knuckle)
-        const handScale = getDistance(wrist, middleMCP);
+        #princess-tiara {
+            width: 130px;
+            height: auto;
+            margin-bottom: 15px;
+            opacity: 0;
+            transition: opacity 1.5s ease, transform 1.5s ease;
+            transform: translateY(-10px);
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.9));
+        }
 
-        // 2. Calculate Pinch/Spread Distance
-        const pinchDist = getDistance(thumbTip, indexTip);
+        #main-message {
+            text-align: center;
+            opacity: 0;
+            transition: opacity 1.5s ease, transform 1.5s ease;
+            transform: translateY(10px);
+            padding: 0 20px;
+        }
 
-        // 3. Normalize: Ratio of pinch distance to palm size
-        // Closed pinch ~ 0.15 to 0.2, Spreading fingers ~ 0.8+
-        const ratio = pinchDist / (handScale || 1);
+        #main-message h1 {
+            font-size: 2.3rem;
+            margin: 0 0 10px 0;
+            color: #ffd700;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+        }
 
-        const minRatio = 0.2;
-        const maxRatio = 0.75;
+        #main-message p {
+            font-size: 1.2rem;
+            margin: 0;
+            color: #fce7f3;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.9);
+        }
 
-        const rawFactor = (ratio - minRatio) / (maxRatio - minRatio);
-        bloomFactor = Math.min(Math.max(rawFactor, 0), 1);
-      }
+        .revealed {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
 
-      const percent = Math.round(bloomFactor * 100);
-      hud.innerText = `Bloom: ${percent}%`;
-      animateFilters(bloomFactor);
+        /* Start Screen Overlay */
+        #start-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(9, 14, 24, 0.93);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+            pointer-events: auto;
+        }
 
-      // Reveal tiara and message once bloom reaches 70%
-      if (bloomFactor > 0.70) {
-        tiara.classList.add('revealed');
-        message.classList.add('revealed');
-      } else {
-        tiara.classList.remove('revealed');
-        message.classList.remove('revealed');
-      }
+        #start-btn {
+            background: linear-gradient(135deg, #ec4899, #db2777);
+            color: white;
+            border: none;
+            padding: 18px 36px;
+            font-size: 1.15rem;
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(236, 72, 153, 0.5);
+            transition: all 0.3s ease;
+        }
 
-      canvasCtx.restore();
-    }
+        #start-btn:hover {
+            transform: translateY(-2px) scale(1.03);
+            box-shadow: 0 15px 40px rgba(236, 72, 153, 0.7);
+        }
 
-    const hands = new Hands({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-    });
+        /* Gesture Instruction Toast */
+        .instructions {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 150, 200, 0.25);
+            border-radius: 20px;
+            padding: 12px 24px;
+            color: rgba(255, 220, 240, 0.95);
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            text-align: center;
+            pointer-events: none;
+        }
+        .instructions span {
+            color: #ff80ab;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
 
-    hands.setOptions({
-      maxNumHands: 1,
-      modelComplexity: 1,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5
-    });
+    <div class="container">
+        <video id="webcam" autoplay playsinline></video>
+        <canvas id="canvas"></canvas>
+        <div class="vignette"></div>
 
-    hands.onResults(onResults);
+        <!-- Custom Audio -->
+        <audio id="bg-music" loop>
+            <source src="golden_brown_slowed.mp3" type="audio/mpeg">
+        </audio>
 
-    const camera = new Camera(videoElement, {
-      onFrame: async () => {
-        await hands.send({ image: videoElement });
-      },
-      width: 640,
-      height: 480
-    });
+        <!-- UI Overlay Layer -->
+        <div class="interface-layer">
+            <img id="princess-tiara" src="princess_tiara.png" alt="Tiara" />
+            <div id="main-message">
+                <h1>Thank you for being the best girlfriend in the world 🌸</h1>
+                <p>Happy Girlfriend's Day, my princess! 💍✨</p>
+            </div>
+        </div>
 
-    startBtn.addEventListener('click', () => {
-      music.play().catch(e => console.log("Audio play deferred or file missing"));
+        <!-- Instructions -->
+        <div class="instructions">
+            <span>Left hand pinch</span> controls Bloom &nbsp;·&nbsp;
+            <span>Right hand pinch</span> controls Growth &nbsp;·&nbsp;
+            <span>Sway hands</span> for wind
+        </div>
 
-      camera.start()
-        .then(() => {
-          startOverlay.style.display = 'none';
-        })
-        .catch(err => {
-          alert("Camera access denied or failed to load. Please verify camera permissions.");
+        <!-- Start Screen -->
+        <div id="start-overlay">
+            <button id="start-btn">A Royal Bloom For You 🌸 (Click to Begin)</button>
+        </div>
+    </div>
+
+    <!-- MediaPipe CDNs -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js" crossorigin="anonymous"></script>
+
+    <script>
+        class OrganicNoise {
+            constructor() {
+                this.seeds = Array.from({ length: 8 }, () => Math.random() * 1000);
+            }
+            get(t, channel = 0) {
+                const s = this.seeds[channel % this.seeds.length];
+                return (
+                    Math.sin(t * 0.7 + s) * 0.4 +
+                    Math.sin(t * 1.3 + s * 1.7) * 0.3 +
+                    Math.sin(t * 2.1 + s * 0.3) * 0.2 +
+                    Math.sin(t * 3.7 + s * 2.1) * 0.1
+                );
+            }
+        }
+
+        class Particle {
+            constructor(cw, ch) {
+                this.cw = cw;
+                this.ch = ch;
+                this.reset(true);
+            }
+            reset(initial = false) {
+                this.x = Math.random() * this.cw;
+                this.y = initial ? Math.random() * this.ch : this.ch + Math.random() * 40;
+                this.radius = Math.random() * 2.5 + 0.5;
+                this.vx = (Math.random() - 0.5) * 0.3;
+                this.vy = -(Math.random() * 0.6 + 0.15);
+                this.life = Math.random() * 300 + 150;
+                this.maxLife = this.life;
+                this.hue = 330 + Math.random() * 40;
+                this.brightness = 70 + Math.random() * 20;
+                this.flickerPhase = Math.random() * Math.PI * 2;
+            }
+            update(windForce, dt) {
+                this.x += this.vx + windForce * 1.8;
+                this.y += this.vy;
+                this.life -= dt;
+                if (this.life <= 0 || this.y < -20 || this.x < -20 || this.x > this.cw + 20) {
+                    this.reset();
+                }
+            }
+            draw(ctx) {
+                const t = this.life / this.maxLife;
+                const flicker = 0.5 + 0.5 * Math.sin(this.life * 0.08 + this.flickerPhase);
+                const alpha = t * 0.75 * flicker;
+                if (alpha < 0.02) return;
+
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = `hsla(${this.hue}, 100%, ${this.brightness}%, 0.8)`;
+                ctx.fillStyle = `hsla(${this.hue}, 90%, ${this.brightness}%, 1)`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class FlowerBloomApp {
+            constructor() {
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.video = document.getElementById('webcam');
+                this.startOverlay = document.getElementById('start-overlay');
+                this.startBtn = document.getElementById('start-btn');
+                this.music = document.getElementById('bg-music');
+                
+                this.tiara = document.getElementById('princess-tiara');
+                this.message = document.getElementById('main-message');
+
+                this.noise = new OrganicNoise();
+                this.time = 0;
+                this.lastTimestamp = 0;
+
+                this.bloom = 0;
+                this.growth = 0;
+                this.windForce = 0;
+
+                this.targetBloom = 0;
+                this.targetGrowth = 0;
+                this.targetWindForce = 0;
+
+                this.prevHandX = 0.5;
+                this.handLandmarks = [];
+                this.handHandedness = [];
+                this.particles = [];
+
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+
+                this.initParticles();
+                
+                this.startBtn.addEventListener('click', () => {
+                    this.music.play().catch(e => console.log("Audio play deferred"));
+                    this.initHandTracking();
+                });
+
+                requestAnimationFrame((ts) => this.animate(ts));
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                for (const p of this.particles) {
+                    p.cw = this.canvas.width;
+                    p.ch = this.canvas.height;
+                }
+            }
+
+            initParticles() {
+                for (let i = 0; i < 60; i++) {
+                    this.particles.push(new Particle(this.canvas.width, this.canvas.height));
+                }
+            }
+
+            initHandTracking() {
+                const hands = new Hands({
+                    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4/${file}`
+                });
+
+                hands.setOptions({
+                    maxNumHands: 2,
+                    modelComplexity: 1,
+                    minDetectionConfidence: 0.65,
+                    minTrackingConfidence: 0.5,
+                });
+
+                hands.onResults((r) => this.onHandResults(r));
+
+                const cam = new Camera(this.video, {
+                    onFrame: async () => {
+                        await hands.send({ image: this.video });
+                    },
+                    width: 1280,
+                    height: 720,
+                });
+
+                cam.start().then(() => {
+                    this.startOverlay.style.display = 'none';
+                }).catch(err => {
+                    alert("Camera access failed. Please ensure camera permissions are allowed.");
+                });
+            }
+
+            calcPinchDistance(lm) {
+                const thumb = lm[4];
+                const index = lm[8];
+                const wrist = lm[0];
+                const mcp = lm[9];
+
+                const ref = Math.hypot(mcp.x - wrist.x, mcp.y - wrist.y);
+                if (ref < 0.01) return 0;
+
+                const dist = Math.hypot(thumb.x - index.x, thumb.y - index.y);
+                return Math.min(1, Math.max(0, (dist / ref - 0.15) * 1.6));
+            }
+
+            palmCenter(lm) {
+                const ids = [0, 5, 9, 13, 17];
+                let x = 0, y = 0;
+                for (const i of ids) { x += lm[i].x; y += lm[i].y; }
+                return { x: x / ids.length, y: y / ids.length };
+            }
+
+            onHandResults(results) {
+                this.handLandmarks = results.multiHandLandmarks || [];
+                this.handHandedness = results.multiHandedness || [];
+                const detected = this.handLandmarks.length;
+
+                let leftPinch = 0, rightPinch = 0;
+                let hasLeft = false, hasRight = false;
+
+                if (detected > 0) {
+                    for (let i = 0; i < detected; i++) {
+                        const hand = this.handLandmarks[i];
+                        const handedness = results.multiHandedness[i];
+                        const isLeft = handedness && handedness.label === 'Left';
+                        const pinch = this.calcPinchDistance(hand);
+
+                        if (isLeft) {
+                            leftPinch = pinch;
+                            hasLeft = true;
+                        } else {
+                            rightPinch = pinch;
+                            hasRight = true;
+                        }
+
+                        const c = this.palmCenter(hand);
+                        const dx = c.x - this.prevHandX;
+                        this.targetWindForce = dx * 12;
+                        this.prevHandX = c.x;
+                    }
+
+                    this.targetBloom = hasLeft ? leftPinch : 0;
+                    this.targetGrowth = hasRight ? rightPinch : 0;
+                } else {
+                    this.targetBloom *= 0.94;
+                    this.targetGrowth *= 0.94;
+                    this.targetWindForce *= 0.9;
+                }
+            }
+
+            drawHandSkeleton(lm, handedness) {
+                const ctx = this.ctx;
+                const cw = this.canvas.width;
+                const ch = this.canvas.height;
+
+                const thumbTip = lm[4];
+                const indexTip = lm[8];
+                if (thumbTip && indexTip) {
+                    const tx = thumbTip.x * cw;
+                    const ty = thumbTip.y * ch;
+                    const ix = indexTip.x * cw;
+                    const iy = indexTip.y * ch;
+
+                    const isLeft = handedness && handedness.label === 'Left';
+                    const labelText = isLeft ? '🌸 Left: Bloom' : '🌱 Right: Grow';
+                    const glowColor = isLeft ? 'rgba(255, 80, 130, 0.85)' : 'rgba(56, 193, 114, 0.85)';
+                    const strokeStyle = isLeft ? '#ff5082' : '#38c172';
+
+                    ctx.save();
+                    ctx.setLineDash([4, 4]);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = strokeStyle;
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = glowColor;
+                    ctx.beginPath();
+                    ctx.moveTo(tx, ty);
+                    ctx.lineTo(ix, iy);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    ctx.save();
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = glowColor;
+                    ctx.fillStyle = strokeStyle;
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, 6, 0, Math.PI * 2);
+                    ctx.arc(ix, iy, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+
+                    // Counter-flip text label
+                    const midX = (tx + ix) / 2;
+                    const midY = (ty + iy) / 2;
+
+                    ctx.save();
+                    ctx.translate(cw, 0);
+                    ctx.scale(-1, 1);
+
+                    ctx.font = 'bold 12px Inter, sans-serif';
+                    const textWidth = ctx.measureText(labelText).width;
+                    const pillWidth = textWidth + 20;
+                    const pillHeight = 22;
+                    const drawX = cw - midX;
+                    const drawY = midY - 20;
+
+                    ctx.fillStyle = 'rgba(10, 5, 20, 0.8)';
+                    ctx.strokeStyle = strokeStyle;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.roundRect(drawX - pillWidth / 2, drawY - pillHeight / 2, pillWidth, pillHeight, 6);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(labelText, drawX, drawY);
+                    ctx.restore();
+                }
+            }
+
+            drawStem(baseX, baseY, height, windAngle) {
+                const ctx = this.ctx;
+                const segs = 24;
+                const segH = height / segs;
+                const pts = [{ x: baseX, y: baseY }];
+
+                for (let i = 1; i <= segs; i++) {
+                    const t = i / segs;
+                    const windBend = windAngle * t * t * 40;
+                    const sway = this.noise.get(this.time * 0.6 + i * 0.25, 0) * 10 * t;
+                    pts.push({ x: baseX + windBend + sway, y: baseY - segH * i });
+                }
+
+                ctx.save();
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+
+                ctx.lineWidth = 6;
+                ctx.strokeStyle = 'rgba(40, 120, 35, 0.25)';
+                ctx.beginPath();
+                ctx.moveTo(pts[0].x, pts[0].y);
+                for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+                ctx.stroke();
+
+                ctx.lineWidth = 3.5;
+                ctx.strokeStyle = '#3a8a30';
+                ctx.beginPath();
+                ctx.moveTo(pts[0].x, pts[0].y);
+                for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+                ctx.stroke();
+
+                this.drawLeaves(pts);
+                ctx.restore();
+                return { tip: pts[pts.length - 1], pts };
+            }
+
+            drawLeaves(stemPts) {
+                const ctx = this.ctx;
+                const positions = [0.25, 0.45, 0.65];
+                for (let li = 0; li < positions.length; li++) {
+                    const idx = Math.floor(positions[li] * (stemPts.length - 1));
+                    const pt = stemPts[idx];
+                    const side = li % 2 === 0 ? 1 : -1;
+                    const len = 22 + this.growth * 18;
+                    const angle = side * (0.45 + this.noise.get(this.time * 0.6 + li * 3, 2) * 0.2);
+
+                    ctx.save();
+                    ctx.translate(pt.x, pt.y);
+                    ctx.rotate(angle);
+
+                    const grad = ctx.createLinearGradient(0, 0, len, 0);
+                    grad.addColorStop(0, 'rgba(55, 140, 45, 0.8)');
+                    grad.addColorStop(1, 'rgba(75, 170, 60, 0.4)');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.quadraticCurveTo(len * 0.5, -10, len, -1);
+                    ctx.quadraticCurveTo(len * 0.5, 10, 0, 0);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+
+            drawFlowerHead(cx, cy, bloom, windAngle, scale) {
+                const adjustedScale = scale * (1.0 + bloom * 0.18);
+                const ctx = this.ctx;
+
+                ctx.save();
+                ctx.translate(cx, cy);
+
+                const glowR = (60 + bloom * 120) * adjustedScale;
+                if (bloom > 0.02) {
+                    const glow = ctx.createRadialGradient(0, -glowR * 0.4, 0, 0, -glowR * 0.4, glowR);
+                    glow.addColorStop(0, `rgba(255, 80, 130, ${0.4 * bloom})`);
+                    glow.addColorStop(0.5, `rgba(255, 50, 100, ${0.2 * bloom})`);
+                    glow.addColorStop(1, 'rgba(255, 30, 70, 0)');
+                    ctx.fillStyle = glow;
+                    ctx.beginPath();
+                    ctx.arc(0, -glowR * 0.4, glowR, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                const hue = 345, sat = 85, light = 55;
+
+                const backPetals = [
+                    { angle: 0, lengthMul: 1.0, widthMul: 0.4, hueOffset: 0, lightOffset: -4 },
+                    { angle: -0.15 - bloom * 0.7, lengthMul: 0.95, widthMul: 0.38, hueOffset: 10, lightOffset: -2 },
+                    { angle: 0.15 + bloom * 0.7, lengthMul: 0.95, widthMul: 0.38, hueOffset: 10, lightOffset: -2 }
+                ];
+
+                const frontPetals = [
+                    { angle: -0.05 - bloom * 0.55, lengthMul: 0.9, widthMul: 0.35, hueOffset: 5, lightOffset: 2 },
+                    { angle: 0.05 + bloom * 0.55, lengthMul: 0.9, widthMul: 0.35, hueOffset: 5, lightOffset: 2 },
+                    { angle: 0, lengthMul: 0.85, widthMul: 0.32, hueOffset: -5, lightOffset: 5 }
+                ];
+
+                const maxPetalLen = 85 * adjustedScale;
+
+                for (const p of backPetals) {
+                    const flutter = this.noise.get(this.time * 1.2 + p.angle * 10, 3) * 0.04 * (1 + bloom);
+                    this.drawTulipPetal(ctx, p.angle + flutter + windAngle * 0.1, maxPetalLen * p.lengthMul, maxPetalLen * p.widthMul * (0.6 + bloom * 0.8), hue + p.hueOffset, sat, light + p.lightOffset, bloom);
+                }
+
+                if (bloom > 0.15) {
+                    ctx.save();
+                    ctx.fillStyle = `rgba(180, 220, 100, ${bloom})`;
+                    ctx.beginPath();
+                    ctx.arc(0, -maxPetalLen * 0.2, 5 * adjustedScale, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    for (let i = 0; i < 4; i++) {
+                        const a = (i / 4) * Math.PI * 2 + this.time * 0.5;
+                        const r = 8 * adjustedScale * bloom;
+                        const sx = Math.cos(a) * r;
+                        const sy = -maxPetalLen * 0.2 + Math.sin(a) * r;
+
+                        ctx.strokeStyle = `rgba(220, 200, 80, ${bloom * 0.7})`;
+                        ctx.lineWidth = 1.5 * adjustedScale;
+                        ctx.beginPath();
+                        ctx.moveTo(0, -maxPetalLen * 0.1);
+                        ctx.lineTo(sx, sy);
+                        ctx.stroke();
+
+                        ctx.fillStyle = `rgba(255, 235, 120, ${bloom})`;
+                        ctx.beginPath();
+                        ctx.arc(sx, sy, 2.5 * adjustedScale, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.restore();
+                }
+
+                for (const p of frontPetals) {
+                    const flutter = this.noise.get(this.time * 1.4 + p.angle * 10, 4) * 0.03 * (1 + bloom);
+                    this.drawTulipPetal(ctx, p.angle + flutter + windAngle * 0.05, maxPetalLen * p.lengthMul, maxPetalLen * p.widthMul * (0.65 + bloom * 0.75), hue + p.hueOffset, sat, light + p.lightOffset, bloom);
+                }
+
+                ctx.restore();
+            }
+
+            drawTulipPetal(ctx, angle, length, width, hue, sat, light, bloom) {
+                ctx.save();
+                ctx.rotate(angle);
+
+                const grad = ctx.createLinearGradient(0, 0, 0, -length);
+                grad.addColorStop(0, `hsla(${hue + 25}, ${sat}%, ${light - 8}%, 0.9)`);
+                grad.addColorStop(0.4, `hsla(${hue}, ${sat}%, ${light}%, 0.85)`);
+                grad.addColorStop(0.85, `hsla(${hue - 10}, ${sat + 10}%, ${light + 10}%, 0.85)`);
+                grad.addColorStop(1, `hsla(${hue - 20}, ${sat + 15}%, ${light + 18}%, 0.95)`);
+
+                ctx.fillStyle = grad;
+                ctx.shadowBlur = 12 + bloom * 18;
+                ctx.shadowColor = `hsla(${hue}, 100%, 65%, ${0.25 + bloom * 0.4})`;
+
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.bezierCurveTo(-width * 1.1, -length * 0.3, -width * 0.9, -length * 0.85, 0, -length);
+                ctx.bezierCurveTo(width * 0.9, -length * 0.85, width * 1.1, -length * 0.3, 0, 0);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            drawBranch(startX, startY, baseAngle, length, windAngle, scale) {
+                const ctx = this.ctx;
+                const segs = 12;
+                const segL = length / segs;
+                const pts = [{ x: startX, y: startY }];
+
+                for (let i = 1; i <= segs; i++) {
+                    const t = i / segs;
+                    const windBend = windAngle * t * t * 15;
+                    const sway = this.noise.get(this.time * 0.8 + i * 0.3, 5) * 4 * t;
+                    const angle = baseAngle + windBend * 0.02 + sway * 0.01;
+                    pts.push({
+                        x: pts[pts.length - 1].x + Math.cos(angle) * segL + windBend * 0.3,
+                        y: pts[pts.length - 1].y + Math.sin(angle) * segL
+                    });
+                }
+
+                ctx.save();
+                ctx.lineWidth = 2.5 * scale;
+                ctx.strokeStyle = '#3a8a30';
+                ctx.beginPath();
+                ctx.moveTo(pts[0].x, pts[0].y);
+                for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+                ctx.stroke();
+                ctx.restore();
+
+                return pts[pts.length - 1];
+            }
+
+            drawHUD() {
+                const ctx = this.ctx;
+                const cw = this.canvas.width;
+
+                ctx.save();
+                ctx.translate(cw, 0);
+                ctx.scale(-1, 1);
+
+                ctx.font = '600 14px Inter, sans-serif';
+                const px = 20, py = 25;
+
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                ctx.beginPath();
+                ctx.roundRect(px - 10, py - 14, 138, 78, 10);
+                ctx.fill();
+
+                ctx.fillStyle = 'rgba(255, 170, 200, 0.95)';
+                ctx.fillText(`Bloom: ${this.bloom.toFixed(2)}`, px, py + 6);
+
+                ctx.fillStyle = 'rgba(140, 255, 140, 0.95)';
+                ctx.fillText(`Grow: ${this.growth.toFixed(2)}`, px, py + 28);
+
+                ctx.fillStyle = 'rgba(140, 200, 255, 0.95)';
+                ctx.fillText(`Wind: ${this.windForce.toFixed(2)}`, px, py + 50);
+
+                ctx.restore();
+            }
+
+            animate(timestamp) {
+                const dt = this.lastTimestamp ? (timestamp - this.lastTimestamp) / 16.67 : 1;
+                this.lastTimestamp = timestamp;
+                this.time += 0.016 * dt;
+
+                const ctx = this.ctx;
+                const cw = this.canvas.width;
+                const ch = this.canvas.height;
+
+                const lerpSpeed = 0.07 * dt;
+                this.bloom += (this.targetBloom - this.bloom) * lerpSpeed;
+                this.growth += (this.targetGrowth - this.growth) * 0.05 * dt;
+                this.windForce += (this.targetWindForce - this.windForce) * 0.06 * dt;
+
+                const naturalWind = this.noise.get(this.time * 0.7, 1) * 0.12;
+                const totalWind = naturalWind + this.windForce * 0.18;
+
+                ctx.clearRect(0, 0, cw, ch);
+
+                for (let i = 0; i < this.handLandmarks.length; i++) {
+                    this.drawHandSkeleton(this.handLandmarks[i], this.handHandedness[i]);
+                }
+
+                for (const p of this.particles) {
+                    p.update(totalWind, dt);
+                    p.draw(ctx);
+                }
+
+                if (this.growth > 0.005) {
+                    const stemBaseX = cw * 0.5;
+                    const stemBaseY = ch * 0.98;
+                    const stemH = ch * 0.52 * this.growth;
+                    const flowerScale = 1.3 * this.growth;
+
+                    const stemData = this.drawStem(stemBaseX, stemBaseY, stemH, totalWind);
+                    const tip = stemData.tip;
+                    const pts = stemData.pts;
+
+                    const branchConfigs = [
+                        { heightRatio: 0.35, direction: -1, lengthFactor: 0.15, scaleFactor: 0.42 },
+                        { heightRatio: 0.55, direction: 1, lengthFactor: 0.13, scaleFactor: 0.45 }
+                    ];
+
+                    for (const config of branchConfigs) {
+                        const idx = Math.floor(pts.length * config.heightRatio);
+                        if (idx > 0 && idx < pts.length) {
+                            const pt = pts[idx];
+                            const prevPt = pts[idx - 1] || pt;
+                            const tangent = Math.atan2(pt.y - prevPt.y, pt.x - prevPt.x);
+                            const branchAngle = tangent + (config.direction * 0.75);
+                            const branchLength = ch * config.lengthFactor * this.growth;
+                            const branchTip = this.drawBranch(pt.x, pt.y, branchAngle, branchLength, totalWind, this.growth);
+                            
+                            this.drawFlowerHead(branchTip.x, branchTip.y, this.bloom, totalWind, flowerScale * config.scaleFactor);
+                        }
+                    }
+
+                    this.drawFlowerHead(tip.x, tip.y, this.bloom, totalWind, flowerScale);
+                }
+
+                // Trigger Tiara & Romantic Message Reveal on Bloom
+                if (this.bloom > 0.65) {
+                    this.tiara.classList.add('revealed');
+                    this.message.classList.add('revealed');
+                } else {
+                    this.tiara.classList.remove('revealed');
+                    this.message.classList.remove('revealed');
+                }
+
+                this.drawHUD();
+                requestAnimationFrame((ts) => this.animate(ts));
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            new FlowerBloomApp();
         });
-    });
-  </script>
+    </script>
+</body>
+</html>
