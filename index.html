@@ -225,7 +225,7 @@
         const dist = getDistance(thumbTip, indexTip);
         
         // Map hand gesture distance range
-        const rawFactor = (dist - 20) / (180 - 20);
+        const rawFactor = (dist - 15) / (90 - 15);
         bloomFactor = Math.min(Math.max(rawFactor, 0), 1);
       }
 
