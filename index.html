@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>A Royal Bloom For You 🌸💍</title>
+  
+  <!-- MediaPipe Hand Tracking Dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&display=swap');
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #090e18;
+      color: white;
+      font-family: 'Playfair Display', serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    /* HD Tulip Background */
+    #hd-tulip-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-image: url('https://images.unsplash.com/photo-1541623862657-3a6d47d4e5f0?q=80&w=1920&auto=format&fit=crop');
+      background-size: cover;
+      background-position: center bottom;
+      z-index: 1;
+      transition: filter 0.1s linear;
+      filter: blur(12px) saturate(0.1) brightness(0.3);
+    }
+
+    /* UI Overlay Layer */
+    .interface-layer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    /* Percentage Badge */
+    #hud {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Tiara Image */
+    #princess-tiara {
+      width: 130px;
+      height: auto;
+      margin-bottom: 15px;
+      opacity: 0;
+      transition: opacity 1.5s ease, transform 1.5s ease;
+      transform: translateY(-10px);
+      filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.9));
+    }
+
+    /* Message Display */
+    #main-message {
+      text-align: center;
+      opacity: 0;
+      transition: opacity 1.5s ease, transform 1.5s ease;
+      transform: translateY(10px);
+      padding: 0 20px;
+    }
+
+    #main-message h1 {
+      font-size: 2.3rem;
+      margin: 0 0 10px 0;
+      color: #ffd700;
+      text-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
+    }
+
+    #main-message p {
+      font-size: 1.2rem;
+      margin: 0;
+      color: #fce7f3;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+    }
+
+    /* Active Bloom Reveal */
+    .revealed {
+      opacity: 1 !important;
+      transform: translateY(0) !important;
+    }
+
+    /* Start Overlay */
+    #start-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(9, 14, 24, 0.92);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+      pointer-events: auto;
+    }
+
+    #start-btn {
+      background: linear-gradient(135deg, #ec4899, #db2777);
+      color: white;
+      border: none;
+      padding: 18px 36px;
+      font-size: 1.15rem;
+      font-family: inherit;
+      font-weight: 600;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(236, 72, 153, 0.5);
+      transition: all 0.3s ease;
+    }
+
+    #start-btn:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 15px 40px rgba(236, 72, 153, 0.7);
+    }
+
+    /* Hidden Processing Elements */
+    video, canvas { display: none; }
+  </style>
+</head>
+<body>
+
+  <!-- HD Background Tulip Image -->
+  <div id="hd-tulip-bg"></div>
+
+  <!-- Music File -->
+  <audio id="bg-music" loop>
+    <source src="golden_brown_slowed.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- UI Interface -->
+  <div class="interface-layer">
+    <div id="hud">0%</div>
+
+    <img id="princess-tiara" src="princess_tiara.png" alt="Tiara" />
+    <div id="main-message">
+      <h1>Thank you for being the best girlfriend in the world 🌸</h1>
+      <p>Happy Girlfriend's Day, my princess! 💍✨</p>
+    </div>
+  </div>
+
+  <!-- Start Screen -->
+  <div id="start-overlay">
+    <button id="start-btn">A Royal Bloom For You 🌸 (Click to Begin)</button>
+  </div>
+
+  <video id="webcam" playsinline></video>
+  <canvas id="output_canvas" width="640" height="480"></canvas>
+
+  <script>
+    const videoElement = document.getElementById('webcam');
+    const canvasElement = document.getElementById('output_canvas');
+    const canvasCtx = canvasElement.getContext('2d');
+    
+    const hud = document.getElementById('hud');
+    const startOverlay = document.getElementById('start-overlay');
+    const startBtn = document.getElementById('start-btn');
+    const music = document.getElementById('bg-music');
+    
+    const tulipBg = document.getElementById('hd-tulip-bg');
+    const tiara = document.getElementById('princess-tiara');
+    const message = document.getElementById('main-message');
+
+    let bloomFactor = 0;
+
+    function getDistance(p1, p2) {
+      const dx = (p1.x - p2.x) * canvasElement.width;
+      const dy = (p1.y - p2.y) * canvasElement.height;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function animateFilters(factor) {
+      const blurVal = (1 - factor) * 12;
+      const saturationVal = 0.1 + (factor * 1.7);
+      const brightnessVal = 0.3 + (factor * 0.7);
+
+      tulipBg.style.filter = `blur(${blurVal}px) saturate(${saturationVal}) brightness(${brightnessVal})`;
+    }
+
+    function onResults(results) {
+      canvasCtx.save();
+      canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+      if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+        const landmarks = results.multiHandLandmarks[0];
+
+        // Thumb tip (4) & Index tip (8)
+        const thumbTip = landmarks[4];
+        const indexTip = landmarks[8];
+
+        const dist = getDistance(thumbTip, indexTip);
+        
+        // Map hand gesture distance range
+        const rawFactor = (dist - 20) / (180 - 20);
+        bloomFactor = Math.min(Math.max(rawFactor, 0), 1);
+      }
+
+      const percent = Math.round(bloomFactor * 100);
+      hud.innerText = `Bloom: ${percent}%`;
+      animateFilters(bloomFactor);
+
+      // Trigger Tiara & Message Reveal at high bloom
+      if (bloomFactor > 0.85) {
+        tiara.classList.add('revealed');
+        message.classList.add('revealed');
+      } else {
+        tiara.classList.remove('revealed');
+        message.classList.remove('revealed');
+      }
+
+      canvasCtx.restore();
+    }
+
+    const hands = new Hands({
+      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+    });
+
+    hands.setOptions({
+      maxNumHands: 1,
+      modelComplexity: 1,
+      minDetectionConfidence: 0.6,
+      minTrackingConfidence: 0.6
+    });
+
+    hands.onResults(onResults);
+
+    const camera = new Camera(videoElement, {
+      onFrame: async () => {
+        await hands.send({ image: videoElement });
+      },
+      width: 640,
+      height: 480
+    });
+
+    startBtn.addEventListener('click', () => {
+      // Play Audio
+      music.play().catch(e => console.log("Audio play deferred or file missing"));
+
+      // Start Camera Loop
+      camera.start()
+        .then(() => {
+          startOverlay.style.display = 'none';
+        })
+        .catch(err => {
+          alert("Camera access denied or failed to load. Please verify camera permissions.");
+        });
+    });
+  </script>
+</body>
+</html>
