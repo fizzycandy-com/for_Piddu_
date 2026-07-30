@@ -1,208 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>A Royal Bloom For You 🌸💍</title>
-  
-  <!-- MediaPipe Hand Tracking Dependencies -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&display=swap');
-
-    body {
-      margin: 0;
-      padding: 0;
-      background: #090e18;
-      color: white;
-      font-family: 'Playfair Display', serif;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-    }
-
-    #hd-tulip-bg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background-image: url('https://images.unsplash.com/photo-1541623862657-3a6d47d4e5f0?q=80&w=1920&auto=format&fit=crop');
-      background-size: cover;
-      background-position: center bottom;
-      z-index: 1;
-      transition: filter 0.1s linear;
-      filter: blur(12px) saturate(0.1) brightness(0.3);
-    }
-
-    .interface-layer {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
-      pointer-events: none;
-    }
-
-    #hud {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 8px 16px;
-      border-radius: 20px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      letter-spacing: 1px;
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    #princess-tiara {
-      width: 130px;
-      height: auto;
-      margin-bottom: 15px;
-      opacity: 0;
-      transition: opacity 1.5s ease, transform 1.5s ease;
-      transform: translateY(-10px);
-      filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.9));
-    }
-
-    #main-message {
-      text-align: center;
-      opacity: 0;
-      transition: opacity 1.5s ease, transform 1.5s ease;
-      transform: translateY(10px);
-      padding: 0 20px;
-    }
-
-    #main-message h1 {
-      font-size: 2.3rem;
-      margin: 0 0 10px 0;
-      color: #ffd700;
-      text-shadow: 0 0 15px rgba(255, 215, 0, 0.7);
-    }
-
-    #main-message p {
-      font-size: 1.2rem;
-      margin: 0;
-      color: #fce7f3;
-      text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-    }
-
-    .revealed {
-      opacity: 1 !important;
-      transform: translateY(0) !important;
-    }
-
-    #start-overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(9, 14, 24, 0.92);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      backdrop-filter: blur(10px);
-      pointer-events: auto;
-      text-align: center;
-      padding: 20px;
-      box-sizing: border-box;
-    }
-
-    #start-btn {
-      background: linear-gradient(135deg, #ec4899, #db2777);
-      color: white;
-      border: none;
-      padding: 18px 36px;
-      font-size: 1.15rem;
-      font-family: inherit;
-      font-weight: 600;
-      border-radius: 50px;
-      cursor: pointer;
-      box-shadow: 0 10px 30px rgba(236, 72, 153, 0.5);
-      transition: all 0.3s ease;
-    }
-
-    #start-btn:hover {
-      transform: translateY(-2px) scale(1.03);
-      box-shadow: 0 15px 40px rgba(236, 72, 153, 0.7);
-    }
-
-    #hint-text {
-      margin-top: 16px;
-      font-size: 0.85rem;
-      color: rgba(255,255,255,0.6);
-      max-width: 280px;
-    }
-
-    video, canvas { display: none; }
-  </style>
-</head>
-<body>
-
-  <div id="hd-tulip-bg"></div>
-
-  <audio id="bg-music" loop>
-    <source src="golden_brown_slowed.mp3" type="audio/mpeg">
-  </audio>
-
-  <div class="interface-layer">
-    <div id="hud">0%</div>
-
-    <img id="princess-tiara" src="princess_tiara.png" alt="Tiara" />
-    <div id="main-message">
-      <h1>Thank you for being the best girlfriend in the world 🌸</h1>
-      <p>Happy Girlfriend's Day, my princess! 💍✨</p>
-    </div>
-  </div>
-
-  <div id="start-overlay">
-    <button id="start-btn">A Royal Bloom For You 🌸 (Click to Begin)</button>
-    <div id="hint-text">Slowly spread your thumb and index finger apart in front of the camera to make it bloom ✨</div>
-  </div>
-
-  <video id="webcam" playsinline></video>
-  <canvas id="output_canvas" width="640" height="480"></canvas>
-
-  <script>
+<script>
     const videoElement = document.getElementById('webcam');
     const canvasElement = document.getElementById('output_canvas');
     const canvasCtx = canvasElement.getContext('2d');
-
+    
     const hud = document.getElementById('hud');
     const startOverlay = document.getElementById('start-overlay');
     const startBtn = document.getElementById('start-btn');
     const music = document.getElementById('bg-music');
-
+    
     const tulipBg = document.getElementById('hd-tulip-bg');
     const tiara = document.getElementById('princess-tiara');
     const message = document.getElementById('main-message');
 
-    // Canvas resolution is fixed via the width/height attributes in HTML (640x480),
-    // matching the Camera() config below, so getDistance()'s pixel math stays consistent.
+    let bloomFactor = 0;
 
-    let bloomFactor = 0;    // smoothed value used for rendering
-    let targetFactor = 0;   // raw value from the latest frame
-    const SMOOTHING = 0.15; // lower = smoother/slower, higher = snappier
-
+    // Standard Normalized Distance
     function getDistance(p1, p2) {
-      const dx = (p1.x - p2.x) * canvasElement.width;
-      const dy = (p1.y - p2.y) * canvasElement.height;
+      const dx = p1.x - p2.x;
+      const dy = p1.y - p2.y;
       return Math.sqrt(dx * dx + dy * dy);
     }
 
@@ -210,6 +25,7 @@
       const blurVal = (1 - factor) * 12;
       const saturationVal = 0.1 + (factor * 1.7);
       const brightnessVal = 0.3 + (factor * 0.7);
+
       tulipBg.style.filter = `blur(${blurVal}px) saturate(${saturationVal}) brightness(${brightnessVal})`;
     }
 
@@ -220,39 +36,36 @@
 
       if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
         const landmarks = results.multiHandLandmarks[0];
+
+        // Key Landmarks
+        const wrist = landmarks[0];
+        const middleMCP = landmarks[9]; // Middle finger knuckle
         const thumbTip = landmarks[4];
         const indexTip = landmarks[8];
 
-        // Reference length: wrist (0) to middle-finger MCP (9).
-        // Normalizing against this makes the pinch-spread ratio consistent
-        // regardless of how close/far the hand is from the camera.
-        const wrist = landmarks[0];
-        const middleMcp = landmarks[9];
-        const handScale = getDistance(wrist, middleMcp) || 1;
+        // 1. Calculate Palm Scale (Wrist to Middle Knuckle)
+        const handScale = getDistance(wrist, middleMCP);
 
-        const rawDist = getDistance(thumbTip, indexTip);
-        const normalizedDist = rawDist / handScale;
+        // 2. Calculate Pinch/Spread Distance
+        const pinchDist = getDistance(thumbTip, indexTip);
 
-        // Tuned so a natural pinch->open-hand motion sweeps 0-100%.
-        // If it feels too easy/hard to max out, adjust these two numbers.
-        const MIN_RATIO = 0.3;
-        const MAX_RATIO = 1.6;
+        // 3. Normalize: Ratio of pinch distance to palm size
+        // Closed pinch ~ 0.15 to 0.2, Spreading fingers ~ 0.8+
+        const ratio = pinchDist / (handScale || 1);
 
-        const rawFactor = (normalizedDist - MIN_RATIO) / (MAX_RATIO - MIN_RATIO);
-        targetFactor = Math.min(Math.max(rawFactor, 0), 1);
-      } else {
-        // No hand in frame — ease back down instead of freezing the last value
-        targetFactor = 0;
+        const minRatio = 0.2;
+        const maxRatio = 0.75;
+
+        const rawFactor = (ratio - minRatio) / (maxRatio - minRatio);
+        bloomFactor = Math.min(Math.max(rawFactor, 0), 1);
       }
-
-      // Smooth out per-frame jitter from the hand tracker
-      bloomFactor += (targetFactor - bloomFactor) * SMOOTHING;
 
       const percent = Math.round(bloomFactor * 100);
       hud.innerText = `Bloom: ${percent}%`;
       animateFilters(bloomFactor);
 
-      if (bloomFactor > 0.85) {
+      // Reveal tiara and message once bloom reaches 70%
+      if (bloomFactor > 0.70) {
         tiara.classList.add('revealed');
         message.classList.add('revealed');
       } else {
@@ -270,8 +83,8 @@
     hands.setOptions({
       maxNumHands: 1,
       modelComplexity: 1,
-      minDetectionConfidence: 0.6,
-      minTrackingConfidence: 0.6
+      minDetectionConfidence: 0.5,
+      minTrackingConfidence: 0.5
     });
 
     hands.onResults(onResults);
@@ -292,10 +105,7 @@
           startOverlay.style.display = 'none';
         })
         .catch(err => {
-          console.error(err);
-          alert("Camera access denied or failed to load. Please check your camera permissions and try again.");
+          alert("Camera access denied or failed to load. Please verify camera permissions.");
         });
     });
   </script>
-</body>
-</html>
