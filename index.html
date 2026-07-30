@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A Little Something For You! 🌸✨</title>
+    <title>A Royal Purple Bloom For You 🌸✨</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=Inter:wght@300;400;600&display=swap');
 
@@ -164,7 +164,7 @@
             <source src="golden_brown_slowed.mp3" type="audio/mpeg">
         </audio>
 
-        <!-- UI Overlay Layer -->
+        <!-- UI Overlay Layer (No Images) -->
         <div class="interface-layer">
             <div id="main-message">
                 <h1>Thank you for being the best girlfriend in the world 💜✨</h1>
@@ -280,7 +280,7 @@
 
                 this.initParticles();
                 
-                // Unlocks audio context on user interaction
+                // Audio Context Unlock
                 this.startBtn.addEventListener('click', () => {
                     if (this.music) {
                         this.music.volume = 0.85;
@@ -290,7 +290,6 @@
                                 console.log("Audio playing successfully");
                             }).catch(err => {
                                 console.warn("Audio play prevented:", err);
-                                // Fallback: try playing on any screen click/tap
                                 const enableAudio = () => {
                                     this.music.play();
                                     document.removeEventListener('click', enableAudio);
@@ -479,7 +478,7 @@
                 }
             }
 
-            drawStem(baseX, baseY, height, windAngle) {
+            drawStem(baseX, baseY, height, windAngle, phaseOffset) {
                 const ctx = this.ctx;
                 const segs = 24;
                 const segH = height / segs;
@@ -488,7 +487,8 @@
                 for (let i = 1; i <= segs; i++) {
                     const t = i / segs;
                     const windBend = windAngle * t * t * 75;
-                    const sway = this.noise.get(this.time * 0.8 + i * 0.25, 0) * 15 * t;
+                    // Phase offset added so they don't sway in perfect sync
+                    const sway = this.noise.get(this.time * 0.8 + i * 0.25 + phaseOffset, 0) * 15 * t;
                     pts.push({ x: baseX + windBend + sway, y: baseY - segH * i });
                 }
 
@@ -512,12 +512,12 @@
                 for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
                 ctx.stroke();
 
-                this.drawLeaves(pts);
+                this.drawLeaves(pts, phaseOffset);
                 ctx.restore();
                 return { tip: pts[pts.length - 1], pts };
             }
 
-            drawLeaves(stemPts) {
+            drawLeaves(stemPts, phaseOffset) {
                 const ctx = this.ctx;
                 const positions = [0.25, 0.45, 0.65];
                 for (let li = 0; li < positions.length; li++) {
@@ -525,7 +525,7 @@
                     const pt = stemPts[idx];
                     const side = li % 2 === 0 ? 1 : -1;
                     const len = 25 + this.growth * 20;
-                    const angle = side * (0.45 + this.noise.get(this.time * 0.6 + li * 3, 2) * 0.2);
+                    const angle = side * (0.45 + this.noise.get(this.time * 0.6 + li * 3 + phaseOffset, 2) * 0.2);
 
                     ctx.save();
                     ctx.translate(pt.x, pt.y);
@@ -544,7 +544,7 @@
                 }
             }
 
-            drawFlowerHead(cx, cy, bloom, windAngle, scale) {
+            drawFlowerHead(cx, cy, bloom, windAngle, scale, phaseOffset) {
                 const adjustedScale = scale * (1.0 + bloom * 0.22);
                 const ctx = this.ctx;
 
@@ -582,7 +582,7 @@
                 const maxPetalLen = 95 * adjustedScale;
 
                 for (const p of backPetals) {
-                    const flutter = this.noise.get(this.time * 1.2 + p.angle * 10, 3) * 0.05 * (1 + bloom);
+                    const flutter = this.noise.get(this.time * 1.2 + p.angle * 10 + phaseOffset, 3) * 0.05 * (1 + bloom);
                     this.drawTulipPetal(ctx, p.angle + flutter + windAngle * 0.12, maxPetalLen * p.lengthMul, maxPetalLen * p.widthMul * (0.65 + bloom * 0.85), hue + p.hueOffset, sat, light + p.lightOffset, bloom);
                 }
 
@@ -596,7 +596,7 @@
                     ctx.fill();
 
                     for (let i = 0; i < 5; i++) {
-                        const a = (i / 5) * Math.PI * 2 + this.time * 0.5;
+                        const a = (i / 5) * Math.PI * 2 + this.time * 0.5 + phaseOffset;
                         const r = 9 * adjustedScale * bloom;
                         const sx = Math.cos(a) * r;
                         const sy = -maxPetalLen * 0.22 + Math.sin(a) * r;
@@ -617,7 +617,7 @@
                 }
 
                 for (const p of frontPetals) {
-                    const flutter = this.noise.get(this.time * 1.4 + p.angle * 10, 4) * 0.04 * (1 + bloom);
+                    const flutter = this.noise.get(this.time * 1.4 + p.angle * 10 + phaseOffset, 4) * 0.04 * (1 + bloom);
                     this.drawTulipPetal(ctx, p.angle + flutter + windAngle * 0.06, maxPetalLen * p.lengthMul, maxPetalLen * p.widthMul * (0.7 + bloom * 0.8), hue + p.hueOffset, sat, light + p.lightOffset, bloom);
                 }
 
@@ -646,7 +646,7 @@
                 ctx.restore();
             }
 
-            drawBranch(startX, startY, baseAngle, length, windAngle, scale) {
+            drawBranch(startX, startY, baseAngle, length, windAngle, scale, phaseOffset) {
                 const ctx = this.ctx;
                 const segs = 12;
                 const segL = length / segs;
@@ -655,7 +655,7 @@
                 for (let i = 1; i <= segs; i++) {
                     const t = i / segs;
                     const windBend = windAngle * t * t * 25;
-                    const sway = this.noise.get(this.time * 0.8 + i * 0.3, 5) * 5 * t;
+                    const sway = this.noise.get(this.time * 0.8 + i * 0.3 + phaseOffset, 5) * 5 * t;
                     const angle = baseAngle + windBend * 0.02 + sway * 0.01;
                     pts.push({
                         x: pts[pts.length - 1].x + Math.cos(angle) * segL + windBend * 0.3,
@@ -734,17 +734,19 @@
                 }
 
                 if (this.growth > 0.005) {
-                    const stemsConfig = [
-                        { baseX: cw * 0.5, baseY: ch * 0.98, heightFactor: 0.52, scaleFactor: 1.25 },
-                        { baseX: cw * 0.32, baseY: ch * 0.98, heightFactor: 0.44, scaleFactor: 1.05 },
-                        { baseX: cw * 0.68, baseY: ch * 0.98, heightFactor: 0.46, scaleFactor: 1.1 }
+                    // 4 INDEPENDENT FLOWERS SPREAD ACROSS THE SCREEN
+                    const fieldConfig = [
+                        { baseX: cw * 0.15, baseY: ch * 1.05, heightFactor: 0.45, scaleFactor: 1.0, phaseOffset: 0 },
+                        { baseX: cw * 0.38, baseY: ch * 0.95, heightFactor: 0.55, scaleFactor: 1.3, phaseOffset: 10 },
+                        { baseX: cw * 0.65, baseY: ch * 1.0,  heightFactor: 0.48, scaleFactor: 1.1, phaseOffset: 5 },
+                        { baseX: cw * 0.88, baseY: ch * 0.98, heightFactor: 0.50, scaleFactor: 1.2, phaseOffset: 15 }
                     ];
 
-                    for (const stemConf of stemsConfig) {
-                        const stemH = ch * stemConf.heightFactor * this.growth;
-                        const flowerScale = stemConf.scaleFactor * this.growth;
+                    for (const plant of fieldConfig) {
+                        const stemH = ch * plant.heightFactor * this.growth;
+                        const flowerScale = plant.scaleFactor * this.growth;
 
-                        const stemData = this.drawStem(stemConf.baseX, stemConf.baseY, stemH, totalWind);
+                        const stemData = this.drawStem(plant.baseX, plant.baseY, stemH, totalWind, plant.phaseOffset);
                         const tip = stemData.tip;
                         const pts = stemData.pts;
 
@@ -761,13 +763,13 @@
                                 const tangent = Math.atan2(pt.y - prevPt.y, pt.x - prevPt.x);
                                 const branchAngle = tangent + (config.direction * 0.75);
                                 const branchLength = ch * config.lengthFactor * this.growth;
-                                const branchTip = this.drawBranch(pt.x, pt.y, branchAngle, branchLength, totalWind, this.growth);
+                                const branchTip = this.drawBranch(pt.x, pt.y, branchAngle, branchLength, totalWind, this.growth, plant.phaseOffset);
                                 
-                                this.drawFlowerHead(branchTip.x, branchTip.y, this.bloom, totalWind, flowerScale * config.scaleFactor);
+                                this.drawFlowerHead(branchTip.x, branchTip.y, this.bloom, totalWind, flowerScale * config.scaleFactor, plant.phaseOffset);
                             }
                         }
 
-                        this.drawFlowerHead(tip.x, tip.y, this.bloom, totalWind, flowerScale);
+                        this.drawFlowerHead(tip.x, tip.y, this.bloom, totalWind, flowerScale, plant.phaseOffset);
                     }
                 }
 
